@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Where Football Clubs Come From</title>
+<meta name="description" content="An animated world map of {{source.n|int}} association football clubs in Wikidata, from Sheffield FC in 1857 to today: the oldest club in each country, founding waves by decade and continent, and the clubs that folded.">
+<meta property="og:title" content="Where football clubs come from: from Sheffield in 1857 to {{first.n|int}} countries">
+<meta property="og:description" content="{{source.n_dated|int}} dated football clubs on one animated map, with the oldest club Wikidata knows in each of {{first.n|int}} countries and territories.">
+<meta property="og:image" content="https://maps.tristanhotham.com/football-origins/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/football-origins/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Touchline: chalk paper, pitch green, claret, kit gold. Era and continent colours are set in the script. */
+:root{
+  --bg:#F7F4EC; --panel:#ECE8DB; --fg:#1E2421; --muted:#646B66; --rule:#E0DACB; --card:#FFFDF7; --border:#CFC7B4;
+  --hot:#9E1B32; --cool:#2D5E9E; --gold:#D99A1E; --pitch:#2E6B3A; --land:#EAE5D7; --sea:#F2EFE7;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141816; --panel:#1F2421; --fg:#ECEFEA; --muted:#A3AAA4; --rule:#343B37; --card:#1A1F1C; --border:#48504B;
+  --hot:#E2687E; --cool:#86A9E0; --gold:#F2C14E; --pitch:#7DC08A; --land:#262C29; --sea:#181C1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141816; --panel:#1F2421; --fg:#ECEFEA; --muted:#A3AAA4; --rule:#343B37; --card:#1A1F1C; --border:#48504B;
+  --hot:#E2687E; --cool:#86A9E0; --gold:#F2C14E; --pitch:#7DC08A; --land:#262C29; --sea:#181C1A; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--pitch);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,94px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--pitch)} h1 .b{color:var(--hot)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--pitch)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)} .stats b.p{color:var(--pitch)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:290px;z-index:1000;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.timebar{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;align-items:center;margin:0 0 8px}
+.play{width:46px;height:46px;border-radius:50%;border:0;background:var(--hot);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.play svg{width:20px;height:20px}
+.yr{font:900 44px/1 var(--display);letter-spacing:-.02em;min-width:3.4ch;font-variant-numeric:tabular-nums}
+.yr small{display:block;font:400 11px/1.2 var(--mono);color:var(--muted);letter-spacing:.04em}
+input[type=range].slider{width:100%;accent-color:var(--hot);min-height:32px}
+.spark{height:54px;margin:0 0 10px;cursor:pointer}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:640px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 26px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side ol,.side ul{margin:4px 0 8px;padding-left:20px}
+.side li{margin:3px 0}
+.side li small,.side td small{color:var(--muted)}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.lmap{height:600px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(62vh,460px)}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.dotcanvas{position:absolute;left:0;top:0;pointer-events:none}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:250px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,520px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.cityL{font:500 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.cityL i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--fg);margin-right:4px;vertical-align:1px}
+.cityL.s{font-size:10px;font-weight:400}
+.cntL{font:700 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;opacity:.75;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;text-align:center}
+.mapnote{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(300px,62vw);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mapnote b{font-weight:600}
+.mapnote:empty{display:none}
+.bigyear{font:900 54px/1 var(--display);color:var(--fg);opacity:.82;text-shadow:0 0 6px var(--bg),0 0 3px var(--bg);pointer-events:none;letter-spacing:-.02em}
+.bigyear small{display:block;font:500 12px/1.3 var(--mono);opacity:.9;letter-spacing:0}
+@media (max-width:600px){.bigyear{font-size:36px}}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--fg)}
+.leaflet-popup-content{font:400 12.5px/1.45 var(--mono);margin:10px 12px}
+.leaflet-popup-content b{font:700 15px/1.2 var(--display)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px;align-items:center}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.legend i.sq{border-radius:2px}
+.legend i.r{background:transparent!important;border:2px solid var(--muted)}
+.legend .ramp{display:inline-block;width:160px;height:12px;border-radius:2px;margin:0 6px;border:1px solid rgba(0,0,0,.1)}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--pitch);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.firsts{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono)}
+table.firsts th{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--fg)}
+table.firsts td{padding:6px 6px 6px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.firsts td.y{font-weight:500;white-space:nowrap}
+table.firsts tr{cursor:pointer}
+table.firsts tr:hover td{background:var(--panel)}
+.tablebox{max-height:430px;overflow:auto;border:1px solid var(--border);background:var(--card);padding:0 10px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
+@media (max-width:760px){.cards{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-top:6px solid var(--c,var(--hot));padding:12px 14px;font:400 13px/1.5 var(--mono)}
+.card b{font:600 19px/1.2 var(--display);display:block;margin-bottom:2px}
+.card .big{font:900 30px/1.05 var(--display);margin:6px 0 2px}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--hot);border-color:var(--hot);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>Football</span><span>World, 1857 to today</span></div>
+<header class="hero">
+  <h1>Where <span class="a">football clubs</span> come <span class="b">from</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">In 1857 two young cricketers in Sheffield founded a football club, and the next year it wrote its own rules. Today Wikidata knows {{source.n|int}} association football clubs. This map plays their founding years forward, from one club in Yorkshire to {{first.n|int}} countries and territories, and shows which ones did not survive.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: Wikidata; Natural Earth</div>
+
+<div class="stats">
+  <div><b class="p">{{source.n|int}}</b><span>association football clubs in Wikidata, {{source.n_dated|int}} with a founding year</span></div>
+  <div><b class="h">{{first.n|int}}</b><span>countries and territories with a dated club; {{first.by_1900|int}} had one before 1900</span></div>
+  <div><b class="g">{{waves.peak_year_n|int}}</b><span>clubs founded in {{waves.peak_year|raw}}, the busiest single year on record</span></div>
+  <div><b class="c">{{dis.n|int}}</b><span>clubs recorded as dissolved; the worst year was {{dis.peak_year|raw}}</span></div>
+</div>
+
+<p class="lede">Every football club was founded by someone, somewhere, at some date, and a surprising number of those facts have been typed into Wikidata, the open database behind Wikipedia. Put them on a map in order and you can watch the game spread: out of Sheffield and the north of England, across the British Isles, into the ports and cities of Europe and South America, and then, decade by decade, to almost every country on earth.</p>
+<p>The data are uneven, and that matters as much as the pattern. Wikidata has a founding year for {{source.dated_pct|pc}} of its clubs, and a point on the map (the club's own, its ground's, or the town in its name) for {{source.point_pct|pc}}. The Netherlands alone has {{coverage.nld|int}} clubs in it, more than Germany; India has {{coverage.ind|int}}. So read the map as a record of what has been catalogued, not a census of football. Press play, or drag the slider, and click any dot or country.</p>
+
+<h2><span class="n">01 · The map</span>From one club to {{source.n|int}}</h2>
+<div class="bleed" id="atlas">
+<div class="timebar">
+  <button class="play" id="play" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></button>
+  <div class="yr" id="yr">1857<small id="yrsub">clubs so far</small></div>
+  <input type="range" class="slider" id="slider" min="1857" max="2026" step="1" value="1857" aria-label="Year">
+</div>
+<div class="spark" id="spark" title="Clubs founded each year: click to jump"></div>
+<div class="controls">
+  <div class="scrollrow" id="modeRow"><span class="ctl-l">Show</span><button class="btn" data-m="cum" aria-pressed="true">All clubs so far</button><button class="btn" data-m="dec" aria-pressed="false">Founded this decade</button></div>
+  <div class="scrollrow" id="speedRow"><span class="ctl-l">Speed</span><button class="btn" data-s="260">Slow</button><button class="btn" data-s="110" aria-pressed="true">Normal</button><button class="btn" data-s="45">Fast</button></div>
+</div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a country or a club" aria-label="Search a country or a club" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls">
+  <div class="scrollrow" id="focusRow"><span class="ctl-l">Zoom to</span></div>
+</div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="Animated map of football clubs by founding year"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src">Dots: clubs with a founding year from 1857 and a point (their own coordinates, their ground's, or the town in their name), coloured by founding year; a hollow ring is a club Wikidata records as dissolved by that year. Countries are shaded once Wikidata records a club there, by the year of that first club. Clubs without a point still count in the totals. Source: Wikidata (CC0). Outlines: Natural Earth. Base map tiles © Esri.</p>
+</div>
+
+<h2><span class="n">02 · The first club</span>How football reached each country</h2>
+<p>The oldest club Wikidata records in England is Sheffield FC ({{uk.ENG.first.y|raw}}), the club usually called the oldest in the world. Wales follows with Wrexham ({{uk.WLS.first.y|raw}}), Scotland with Queen's Park ({{uk.SCT.first.y|raw}}) and Northern Ireland with Cliftonville ({{uk.NIR.first.y|raw}}). By 1900 {{first.by_1900|int}} countries and territories had a dated club, by 1914 {{first.by_1914|int}}, and by 1950 {{first.by_1950|int}}. The last place to get one in the record is {{first.last.name|raw}} ({{first.last.y|raw}}).</p>
+<p>Many of these first clubs began as something else. The first in South America is the Lima Cricket and Football Club ({{first.first_by_cont.South America.y|raw}}); Switzerland's is a football and cricket club in Lausanne; Uruguay's a rowing club; Norway's and Italy's began as gymnastics societies, and Germany's is a sports club from 1858, older than the game itself in Germany. Wikidata gives the founding year of the whole club, so a first date here is the date a club that now plays football was founded, not the first kick.</p>
+<div class="figure"><p class="fig-h">The diffusion front: year of each country's first club, and how far it is from Sheffield</p><p class="fig-sub">{{first.n|int}} countries and territories. Each dot is the oldest dated club Wikidata records there. Hover for the club.</p><div class="chart" id="frontChart"></div><div class="legend" id="contLegend"></div></div>
+<p>The front moves outwards, but not smoothly. Countries whose first club came before 1900 sit a median {{first.median_km_pre1900|int}} km from Sheffield; those whose first club came after 1950, {{first.median_km_post1950|int}} km. The early leaps follow ships and trade rather than distance: Peru, Argentina, Uruguay, India and Australia all have clubs in the record before Hungary, Poland or Russia.</p>
+<div class="figure"><p class="fig-h">The oldest club in each country</p><p class="fig-sub">Oldest dated club in Wikidata, from 1857. Click a row to see it on the map. The full table is in data/first_clubs.csv.</p>
+<div class="controls"><div class="scrollrow" id="contRow"><span class="ctl-l">Continent</span></div></div>
+<div class="tablebox"><table class="firsts" id="firsts"></table></div></div>
+
+<h2><span class="n">03 · Founding waves</span>Europe first, then everyone else</h2>
+<p>Of the {{source.n_ok|int}} clubs with a founding year from 1857, {{waves.europe_pct_all|pc}} are European. Before 1900 the share is {{waves.share_by_period.1857-1899.Europe|pc}}, and {{waves.pre1900_uk_pct|pc}} of all clubs founded before 1900 are in the United Kingdom. The busiest single year is {{waves.peak_year|raw}}, with {{waves.peak_year_n|int}} new clubs, as the First World War ended, and Europe's busiest decade is the 1920s. Every other continent peaks in the 2000s, and since 2000 Europe's share of new clubs has fallen to {{waves.share_by_period.2000-2026.Europe|pc}}, with Asia at {{waves.share_by_period.2000-2026.Asia|pc}}.</p>
+<div class="figure"><p class="fig-h">Clubs founded per decade, by continent</p><p class="fig-sub">{{source.n_ok|int}} clubs with a founding year from 1857. The 2020s run only to 2026. Hover a bar.</p><div class="chart" id="waveChart"></div><div class="legend" id="contLegend2"></div></div>
+<p>The recent peaks need care. Newer clubs are more likely to have a founding date in Wikidata at all, and some countries have been catalogued in bursts by enthusiastic editors. The rise after 1990 ({{waves.post1990_pct|pc}} of dated clubs) is partly real (new leagues, new countries, women's football) and partly a sign of who is editing now.</p>
+
+<h2><span class="n">04 · The British Isles</span>Where it started</h2>
+<div class="cards" id="ukCards"></div>
+<p>Of the {{uk.pre1880_all|int}} clubs Wikidata dates to before 1880, {{uk.pre1880|int}} are in the United Kingdom. Wikidata files most clubs simply under the United Kingdom, so I gave each one its nation from its point; {{uk.unknown|int}} UK clubs have no point and stay as "United Kingdom". England's early list is a roll call of the clubs that wrote the rules: Sheffield, Hallam, Notts County, Stoke, Nottingham Forest, Sheffield Wednesday, and the London sides of the first FA Cup, many now gone.</p>
+
+<h2><span class="n">05 · Clubs that died</span>{{dis.n|int}} clubs that folded</h2>
+<p>Wikidata records a dissolution date for {{dis.n|int}} clubs ({{dis.pct|pc}}). The single worst year is {{dis.peak_year|raw}}, when {{dis.y1945|int}} clubs ended, {{dis.y1945_german|int}} of them in Germany or the former German Reich: the Allies dissolved German sports clubs after the war, and clubs in the lost eastern territories ceased to exist. The oldest club that died is the Wanderers ({{dis.oldest_dead.0.y|raw}} to {{dis.oldest_dead.0.d|raw}}), five times winners of the early FA Cup.</p>
+<div class="figure"><p class="fig-h">Clubs dissolved per decade</p><p class="fig-sub">{{dis.n|int}} clubs with a dissolution date (P576) in Wikidata.</p><div class="chart" id="disChart"></div></div>
+<p>More than half of all recorded deaths ({{dis.since2000_pct|pc}}) are since 2000. Some of that is real, from mergers, bankruptcies and refoundings, but recent closures are also simply easier to record. Of the clubs with both dates, the median lifespan is {{dis.median_life|int}} years and {{dis.short5|int}} lasted five years or fewer.</p>
+<p class="pull">The busiest year for new clubs was {{waves.peak_year|raw}}. The busiest year for dead ones was {{dis.peak_year|raw}}.</p>
+
+<h2><span class="n">06 · The gaps</span>A map of who keeps records</h2>
+<p>Europe holds {{coverage.europe_pct|pc}} of all clubs with a country in Wikidata and Africa {{coverage.africa_pct|pc}}. Per head of population the differences are enormous: the Netherlands has {{coverage.nld_per_m|int}} clubs per million people in Wikidata, Nigeria {{coverage.nga_per_m|f1}}. Dutch, Swedish, Belgian, Baltic and Cypriot editors have catalogued their amateur and village clubs; most of the world's clubs have no entry at all. Half of the clubs have {{coverage.median_sl|int}} or fewer sitelinks (Wikipedia articles in any language and other Wikimedia pages), and {{coverage.sl1_pct|pc}} have at most one.</p>
+<div class="figure"><p class="fig-h">Clubs in Wikidata per million people</p><p class="fig-sub">The twelve highest, and the twelve lowest among countries of more than 20 million people. Population: Natural Earth estimates.</p><div class="chart" id="covChart"></div></div>
+<p>So the timing of a country's first club is more trustworthy than the number of its clubs, and even first dates are only as good as the oldest club someone thought to enter. If a country's first club looks late, it may simply mean its early clubs are missing.</p>
+
+<h2><span class="n">07 · How I did this</span>Methods and caveats</h2>
+<p><b>Clubs.</b> Every Wikidata item that is an instance of association football club or one of its subclasses, from a QLever query: {{source.n_items|int}} items in {{source.n_rows|int}} rows (a club repeats for each type, ground or country). I kept one record per item and left out {{source.n_dropped|int}} that are not clubs in the usual sense: national and regional teams, beach soccer and futsal sides, reserve, B and under-age teams, and {{source.dropped.probable Australian rules club|int}} Australian clubs whose names mark them as Australian rules football clubs, which Wikidata often files as football clubs. That leaves {{source.n|int}}.</p>
+<p><b>Dates.</b> The founding year is the earliest inception date (P571); {{source.yonly_pct|pc}} of them are stored as 1 January, which in Wikidata means a bare year, so I use years throughout. {{source.n_early|int}} clubs have a founding year before 1857: these are cricket, gymnastics and sports societies older than football, plus a few errors, and they are left out of the timeline and the first-club table but kept in the data with a flag. The dissolution year is the latest P576 date.</p>
+<p><b>Places.</b> A club's point is its own coordinates ({{source.n_own|int}} clubs), else its home ground's ({{source.n_venue|int}}), else, if its English name contains a town or city in the same country from Natural Earth, that town ({{source.n_town|int}}, approximate). Its country is the present-day country its point falls in, else the country Wikidata gives; {{source.agree_pct|pc}} of points fall in the country Wikidata names. Clubs whose only country is a former state (the Soviet Union, the German Reich, Czechoslovakia) and that have no point are counted in the totals but not in any country. The United Kingdom is split into its four nations, because each has its own football association. Continents follow Natural Earth.</p>
+<p><b>What this is not.</b> It is not a list of every club, nor proof of who founded which, and it cannot say who brought football to each country: Wikidata does not record founders' nationality, so nothing here measures the part played by British workers, sailors or students abroad. A country's first club is the oldest one in Wikidata with a date, which may be a multi-sport society, and may be wrong.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>Wikidata, via QLever (https://qlever.cs.uni-freiburg.de/wikidata), retrieved {{meta.retrieved|raw}}. CC0.</li>
+<li>Natural Earth countries, states and provinces, and populated places (public domain).</li>
+<li>engsoccerdata (James Curley, GPL-3), used only to check the points of English clubs; nothing from it is redistributed.</li>
+<li>Base map tiles © Esri.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/{{meta.doi|raw}}">Read the paper</a><a href="https://github.com/Tristan-Hotham/football-origins">Data and code</a><a href="{{meta.blog|raw}}">Blog post</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Where football clubs come from: founding years of {{source.n|int}} association football clubs in Wikidata, 1857 to today. Zenodo. <a href="https://doi.org/{{meta.doi|raw}}">https://doi.org/{{meta.doi|raw}}</a></p>
+<p>Licence: derived data and text CC BY 4.0 (Wikidata is CC0), code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const WORLD = /*WORLD*/;
+const CITIES = /*CITIES*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const CN = iso => (SITE.cname[iso] || iso);
+const small = () => innerWidth < 900;
+const wdlink = (q, t) => `<a href="https://www.wikidata.org/wiki/${esc(q)}" target="_blank" rel="noopener">${esc(t || "Wikidata")}</a>`;
+const START = R.meta.start, END = R.meta.end;
+
+/* ---------- colours: founding era ramp, continents ---------- */
+const ERA = [[1857, "#6E0F2B"], [1880, "#B3261E"], [1900, "#E0702A"], [1925, "#D9A21E"], [1950, "#5E9C3F"], [1975, "#22877F"], [2000, "#2F5DA8"], [2026, "#5B3E96"]];
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function mix(a, b, t) { const A = hex(a), B = hex(b); return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, "0")).join(""); }
+function eraCol(y) { if (y <= ERA[0][0]) return ERA[0][1]; for (let i = 1; i < ERA.length; i++) if (y <= ERA[i][0]) return mix(ERA[i - 1][1], ERA[i][1], (y - ERA[i - 1][0]) / (ERA[i][0] - ERA[i - 1][0])); return ERA[ERA.length - 1][1]; }
+const CONT = [["Europe", "#9E1B32"], ["South America", "#D99A1E"], ["North America", "#2D5E9E"], ["Africa", "#2E7D4F"], ["Asia", "#D9622B"], ["Oceania", "#7A5CA8"]];
+const CC = Object.fromEntries(CONT);
+
+/* hero mark: a ball made of era colours */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("circle", { cx: 60, cy: 60, r: 52, fill: "none", stroke: "currentColor", "stroke-width": 3 }, g);
+  const pent = (cx, cy, r, rot, fill) => { const p = []; for (let i = 0; i < 5; i++) { const a = rot + i * 2 * Math.PI / 5; p.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1)); } el("polygon", { points: p.join(" "), fill, stroke: "currentColor", "stroke-width": 2 }, g); };
+  pent(60, 60, 17, -Math.PI / 2, ERA[0][1]);
+  [0, 1, 2, 3, 4].forEach(i => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; pent(60 + 41 * Math.cos(a), 60 + 41 * Math.sin(a), 13, a + Math.PI / 2 + Math.PI / 5 * 0, ERA[1 + i][1]); });
+})();
+
+/* ---------- map machinery ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const LYDEF = { base: "plain", hills: true, hillK: 45, labels: false, labelK: 80, names: true, nameLvl: 1, cnames: true, borders: true, colour: 55, dots: true, firsts: true, dead: true, size: 3 };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("football_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("football_layers", JSON.stringify(LY)); } catch (e) {} };
+const map = L.map("map", { minZoom: 1, maxZoom: 12, maxBounds: [[-75, -200], [86, 200]], zoomSnap: .5, worldCopyJump: false }).setView([45, -2], small() ? 2 : 3);
+["hills:250", "fill:400", "labels:450", "pts:600", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "labels", "names", "pts"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+let base = null, hills = null, labels = null; const names = L.layerGroup(), cnames = L.layerGroup();
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "relief" ? ESRI + "World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "relief" ? 13 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(`${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" });
+  applyLayers();
+}
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .15 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  if (LY.names) names.addTo(map); else map.removeLayer(names);
+  if (LY.cnames) cnames.addTo(map); else map.removeLayer(cnames);
+  cLayer.setStyle(cStyle); placeNames(); dots.draw();
+}
+function placeNames() {
+  names.clearLayers(); cnames.clearLayers();
+  const z = map.getZoom(), bb = map.getBounds().pad(.05); const boxes = [];
+  if (LY.names) {
+    const minPop = [[2, 8e6], [3, 3e6], [4, 1e6], [5, 4e5], [6, 1.5e5], [99, 4e4]].find(([zz]) => z < zz + (LY.nameLvl === 2 ? 1.5 : LY.nameLvl === 0 ? -1 : 0))[1] * (LY.nameLvl === 0 ? 2 : 1);
+    let n = 0;
+    for (const c of CITIES) {
+      if (c.pop < minPop || !bb.contains([c.lat, c.lon])) continue;
+      const pt = map.latLngToContainerPoint([c.lat, c.lon]), big = c.pop >= 5e6;
+      const bx = [pt.x - 4, pt.y - 8, pt.x + 10 + c.name.length * (big ? 6.9 : 6.3), pt.y + 7];
+      if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) continue;
+      boxes.push(bx); L.marker([c.lat, c.lon], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cityL" + (big ? "" : " s"), html: `<i></i>${esc(c.name)}`, iconSize: null, iconAnchor: [3, 6] }) }).addTo(names);
+      if (++n >= 120) break;
+    }
+  }
+  if (LY.cnames && z >= 3 && z < 7) {
+    WORLD.features.forEach(f => { const g = SITE.cpos[f.properties.iso]; if (!g || !bb.contains([g[1], g[0]])) return; const nm = CN(f.properties.iso);
+      if (z < 4 && (g[2] || 0) < 2e7 && !["ENG", "SCT", "WLS"].includes(f.properties.iso)) return; const pt = map.latLngToContainerPoint([g[1], g[0]]), w = nm.length * 7.2;
+      const bx = [pt.x - w / 2, pt.y - 7, pt.x + w / 2, pt.y + 7]; if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return; boxes.push(bx);
+      L.marker([g[1], g[0]], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cntL", html: esc(nm), iconSize: [w, 14], iconAnchor: [w / 2, 7] }) }).addTo(cnames); });
+  }
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="relief">Shaded relief</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hills and mountains</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Map labels</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Map label strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="names"> Bold city names</label><div class="sub"><span>how many</span><select data-k="nameLvl" aria-label="How many city names"><option value="0">Biggest only</option><option value="1">Some</option><option value="2">Lots</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="cnames"> Country names</label></div>
+ <div class="row"><label><input type="checkbox" data-k="borders"> Borders</label></div>
+ <div class="hd">Football</div>
+ <div class="row"><label><input type="checkbox" data-k="dots"> Clubs</label><div class="sub"><span>dot size</span><input type="range" data-k="size" min="1.5" max="6" step=".5" aria-label="Dot size"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="dead"> Clubs that folded (rings)</label></div>
+ <div class="row"><label><input type="checkbox" data-k="firsts"> Countries by first club</label><div class="sub"><span>strength</span><input type="range" data-k="colour" min="10" max="100" step="5" aria-label="Country colour strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "nameLvl") LY.names = true; if (k === "colour") LY.firsts = true; if (k === "size") LY.dots = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers(); legend();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); legend(); };
+  sync();
+})();
+const Note = L.Control.extend({ options: { position: "bottomleft" }, onAdd() { const d = L.DomUtil.create("div", "mapnote"); d.id = "mapnote"; L.DomEvent.disableClickPropagation(d); return d; } });
+map.addControl(new Note());
+const Big = L.Control.extend({ options: { position: "topleft" }, onAdd() { const d = L.DomUtil.create("div", "bigyear"); d.id = "bigyear"; return d; } });
+map.addControl(new Big());
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+/* ---------- state ---------- */
+const S = { y: START, mode: "cum", playing: false, speed: 110, sel: null, club: null };
+
+/* ---------- countries ---------- */
+function cStyle(f) {
+  const iso = f.properties.iso, bd = css("--border") || "#999", fr = SITE.first[iso];
+  const on = LY.firsts && fr && fr[0] <= S.y;
+  const sel = iso === S.sel;
+  return { color: sel ? css("--fg") : bd, weight: LY.borders ? (sel ? 2.4 : .6) : (sel ? 2 : 0), fillColor: on ? eraCol(fr[0]) : css("--land"), fillOpacity: on ? .55 * LY.colour / 100 : .25 };
+}
+const cLayer = L.geoJSON(WORLD, { pane: "fill", style: cStyle, onEachFeature: (f, l) => {
+  l.on("click", e => { L.DomEvent.stopPropagation(e); const h = hitDot(e.containerPoint); if (h >= 0) pickClub(h, false); else pickCountry(f.properties.iso, false); });
+  l.on("mousemove", e => { const h = hitDot(e.containerPoint); map.getContainer().style.cursor = h >= 0 ? "pointer" : ""; const r = map.getContainer().getBoundingClientRect(); showTip(h >= 0 ? clubTip(h) : cTip(f.properties.iso), r.left + e.containerPoint.x, r.top + e.containerPoint.y); });
+  l.on("mouseout", hideTip);
+} }).addTo(map);
+map.on("click", e => { const h = hitDot(e.containerPoint); if (h >= 0) pickClub(h, false); });
+function cumCountry(iso, y) { const c = SITE.c[iso]; if (!c) return 0; let n = 0; for (const k in c.y) if (+k <= y) n += c.y[k]; return n; }
+function cTip(iso) {
+  const fr = SITE.first[iso], n = cumCountry(iso, S.y);
+  return `<b>${esc(CN(iso))}</b><br>${fmt(n)} dated club${n === 1 ? "" : "s"} by ${S.y}` + (fr ? `<br>first: ${esc(fr[1])} (${fr[0]})` : "<br>no dated club in Wikidata");
+}
+
+/* ---------- club dots on one canvas ---------- */
+let P = null, Z = -1, XY = null, VIS = new Int32Array(0), NV = 0;
+const Dots = L.Layer.extend({
+  onAdd(m) { this._c = L.DomUtil.create("canvas", "dotcanvas"); m.getPane("pts").appendChild(this._c); m.on("moveend zoomend resize viewreset", this._reset, this); m.on("zoomstart", () => this._c.style.opacity = 0); this._reset(); },
+  onRemove(m) { L.DomUtil.remove(this._c); m.off("moveend zoomend resize viewreset", this._reset, this); },
+  _reset() { const s = map.getSize(), d = devicePixelRatio || 1; L.DomUtil.setPosition(this._c, map.containerPointToLayerPoint([0, 0])); this._c.width = s.x * d; this._c.height = s.y * d; this._c.style.width = s.x + "px"; this._c.style.height = s.y + "px"; this._c.style.opacity = 1; this.draw(); },
+  draw() {
+    if (!this._c) return; const ctx = this._c.getContext("2d"), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, this._c.width, this._c.height); NV = 0;
+    if (!P || !LY.dots) return;
+    const z = map.getZoom(); if (z !== Z) { Z = z; XY = new Float32Array(P.length * 2); P.forEach((p, i) => { const q = map.project([p[1], p[0]], z); XY[2 * i] = q.x; XY[2 * i + 1] = q.y; }); VIS = new Int32Array(P.length); }
+    const o = map.getPixelOrigin(), pb = map.getPixelBounds(), off = map.containerPointToLayerPoint([0, 0]), ox = o.x + off.x, oy = o.y + off.y, sz = map.getSize();
+    const r0 = LY.size * (z < 3 ? .8 : z < 5 ? 1 : z < 7 ? 1.25 : 1.6), y = S.y, d0 = Math.floor(y / 10) * 10, dark = isDark();
+    const rim = dark ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.75)", ring = dark ? "rgba(220,220,220,.8)" : "rgba(60,60,60,.75)";
+    const lo = S.mode === "dec" ? d0 : START, hi = S.mode === "dec" ? d0 + 9 : y;
+    // newest first so the oldest clubs stay on top; rings for dissolved clubs; this year's clubs last with a halo
+    const live = [], fresh = [];
+    for (let i = P.length - 1; i >= 0; i--) {
+      const p = P[i]; if (!p[2] || p[2] < lo || p[2] > hi || (S.mode === "dec" && p[2] > y)) continue;
+      const x = XY[2 * i] - ox, yy = XY[2 * i + 1] - oy; if (x < -10 || yy < -10 || x > sz.x + 10 || yy > sz.y + 10) continue;
+      VIS[NV++] = i;
+      if (p[3] && p[3] <= y) { if (!LY.dead) { NV--; continue; } ctx.beginPath(); ctx.arc(x, yy, r0 + .6, 0, 7); ctx.strokeStyle = ring; ctx.lineWidth = 1.1; ctx.stroke(); continue; }
+      (p[2] === y && S.playing ? fresh : live).push(i);
+    }
+    ctx.lineWidth = .7; ctx.strokeStyle = rim;
+    for (const i of live) { const p = P[i]; ctx.beginPath(); ctx.arc(XY[2 * i] - ox, XY[2 * i + 1] - oy, r0, 0, 7); ctx.fillStyle = eraCol(p[2]); ctx.fill(); if (r0 >= 2.5) ctx.stroke(); }
+    for (const i of fresh) { const p = P[i], x = XY[2 * i] - ox, yy = XY[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, yy, r0 * 2.6, 0, 7); ctx.fillStyle = "rgba(255,215,64,.35)"; ctx.fill(); ctx.beginPath(); ctx.arc(x, yy, r0 * 1.4, 0, 7); ctx.fillStyle = eraCol(p[2]); ctx.fill(); ctx.strokeStyle = rim; ctx.stroke(); }
+    if (S.club != null) { const i = S.club; const x = XY[2 * i] - ox, yy = XY[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, yy, r0 + 5, 0, 7); ctx.strokeStyle = dark ? "#fff" : "#000"; ctx.lineWidth = 2.2; ctx.stroke(); }
+  }
+});
+const dots = new Dots().addTo(map);
+function hitDot(cp) {
+  if (!P || !NV) return -1; const o = map.getPixelOrigin(), off = map.containerPointToLayerPoint([0, 0]), ox = o.x + off.x, oy = o.y + off.y;
+  let best = -1, bd = 81; for (let k = 0; k < NV; k++) { const i = VIS[k], dx = XY[2 * i] - ox - cp.x, dy = XY[2 * i + 1] - oy - cp.y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+  return best;
+}
+const SRCN = ["its own coordinates", "its ground", "the town in its name (approximate)"];
+function clubTip(i) { const p = P[i]; return `<b>${esc(p[7] || "(no English label)")}</b><br>founded ${p[2]}${p[3] ? ", dissolved " + p[3] : ""} · ${esc(CN(p[6]))}`; }
+fetch("data/points.json").then(r => r.json()).then(j => { P = j.rows; Z = -1; dots.draw(); side(); });
+
+/* ---------- time ---------- */
+const cumAll = {}; (function () { let n = 0; for (let y = START; y <= END; y++) { n += SITE.all_y[y] || 0; cumAll[y] = n; } })();
+const cumDead = {}; (function () { let n = 0; for (let y = 1800; y <= END; y++) { n += SITE.all_d[y] || 0; if (y >= START) cumDead[y] = n; } })();
+const nCountries = y => Object.values(SITE.first).filter(f => f[0] <= y).length;
+function setYear(y, fromSlider) {
+  S.y = Math.max(START, Math.min(END, y)); document.getElementById("slider").value = S.y;
+  const d0 = Math.floor(S.y / 10) * 10;
+  document.getElementById("yr").firstChild.nodeValue = S.mode === "dec" ? d0 + "s" : S.y;
+  const n = S.mode === "dec" ? Object.entries(SITE.all_y).filter(([k]) => +k >= d0 && +k <= S.y).reduce((s, [, v]) => s + v, 0) : cumAll[S.y];
+  document.getElementById("yrsub").textContent = S.mode === "dec" ? `${fmt(n)} founded so far this decade` : `${fmt(n)} clubs so far`;
+  document.getElementById("bigyear").innerHTML = `${S.mode === "dec" ? d0 + "s" : S.y}<small>${fmt(n)} clubs · ${nCountries(S.y)} countries</small>`;
+  cLayer.setStyle(cStyle); dots.draw(); sparkCursor(); side();
+}
+let timer = null;
+function play(on) {
+  S.playing = on; const b = document.getElementById("play");
+  b.innerHTML = on ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+  b.setAttribute("aria-label", on ? "Pause" : "Play");
+  clearInterval(timer);
+  if (on) { if (S.y >= END) setYear(START); timer = setInterval(() => { if (S.y >= END) { play(false); dots.draw(); return; } setYear(S.y + 1); }, S.speed); }
+  else dots.draw();
+}
+document.getElementById("play").onclick = () => play(!S.playing);
+document.getElementById("slider").addEventListener("input", e => { if (S.playing) play(false); setYear(+e.target.value, true); });
+document.querySelectorAll("#modeRow .btn").forEach(b => b.onclick = () => { S.mode = b.dataset.m; document.querySelectorAll("#modeRow .btn").forEach(x => x.setAttribute("aria-pressed", x === b)); setYear(S.y); legend(); });
+document.querySelectorAll("#speedRow .btn").forEach(b => b.onclick = () => { S.speed = +b.dataset.s; document.querySelectorAll("#speedRow .btn").forEach(x => x.setAttribute("aria-pressed", x === b)); if (S.playing) play(true); });
+
+/* sparkline of foundings per year, with dissolutions below */
+let sparkSvg = null, sparkX = null;
+function spark() {
+  resp(document.getElementById("spark"), w => {
+    const box = document.getElementById("spark"), h = 54, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Clubs founded and dissolved each year" }, box);
+    const n = END - START + 1, bw = w / n, mx = Math.max(...Object.values(SITE.all_y)), md = Math.max(...Object.values(SITE.all_d));
+    sparkX = y => (y - START) * bw;
+    for (let y = START; y <= END; y++) {
+      const v = SITE.all_y[y] || 0, dv = SITE.all_d[y] || 0;
+      if (v) el("rect", { x: sparkX(y), y: 38 - 36 * v / mx, width: Math.max(1, bw - .4), height: 36 * v / mx, fill: eraCol(y) }, svg);
+      if (dv) el("rect", { x: sparkX(y), y: 40, width: Math.max(1, bw - .4), height: 13 * dv / md, fill: css("--muted"), opacity: .7 }, svg);
+    }
+    el("line", { x1: 0, x2: w, y1: 39, y2: 39, stroke: css("--border") }, svg);
+    lbl(svg, 2, 10, "founded", "lab s m"); lbl(svg, 2, 52, "dissolved", "lab s m");
+    sparkSvg = el("line", { id: "cur", x1: 0, x2: 0, y1: 0, y2: h, stroke: css("--fg"), "stroke-width": 1.5 }, svg);
+    sparkSvg._w = w; sparkCursor();
+    svg.addEventListener("click", e => { const r = svg.getBoundingClientRect(); const y = Math.round(START + (e.clientX - r.left) / r.width * (n - 1)); if (S.playing) play(false); setYear(y); });
+    svg.addEventListener("mousemove", e => { const r = svg.getBoundingClientRect(); const y = Math.round(START + (e.clientX - r.left) / r.width * (n - 1)); showTip(`<b>${y}</b><br>${fmt(SITE.all_y[y] || 0)} founded · ${fmt(SITE.all_d[y] || 0)} dissolved`, e.clientX, e.clientY); });
+    svg.addEventListener("mouseleave", hideTip);
+  });
+}
+function sparkCursor() { if (!sparkSvg) return; const x = sparkX(S.y) + 1; sparkSvg.setAttribute("x1", x); sparkSvg.setAttribute("x2", x); }
+
+/* ---------- legend, side panel ---------- */
+function legend() {
+  const e = document.getElementById("legend");
+  const g = `linear-gradient(90deg,${ERA.map(([y, c]) => `${c} ${((y - START) / (END - START) * 100).toFixed(1)}%`).join(",")})`;
+  let h = `<span>founded ${START}</span><span class="ramp" style="background:${g}"></span><span>${END}</span>`;
+  if (LY.dead) h += `<span><i class="r"></i>dissolved by this year</span>`;
+  if (S.playing || true) h += `<span><i style="background:#F2C14E;box-shadow:0 0 0 4px rgba(255,215,64,.35)"></i>founded this year (while playing)</span>`;
+  if (LY.firsts) h += `<span><i class="sq" style="background:${eraCol(1900)};opacity:.6"></i>country shaded by year of its first club</span>`;
+  e.innerHTML = h;
+}
+function note(h) { document.getElementById("mapnote").innerHTML = h || ""; }
+function decBars(iso) {
+  const c = SITE.c[iso]; if (!c) return ""; const dec = {}; for (const k in c.y) { const d = Math.floor(+k / 10) * 10; dec[d] = (dec[d] || 0) + c.y[k]; }
+  const ds = []; for (let d = 1850; d <= 2020; d += 10) ds.push(d); const mx = Math.max(1, ...ds.map(d => dec[d] || 0));
+  let s = `<svg viewBox="0 0 300 70" style="width:100%;height:auto" role="img" aria-label="Clubs founded per decade">`;
+  ds.forEach((d, i) => { const v = dec[d] || 0, bh = 52 * v / mx, x = 4 + i * 16.4; s += `<rect x="${x}" y="${56 - bh}" width="13" height="${bh}" fill="${eraCol(d + 5)}" opacity="${d <= S.y ? 1 : .3}"><title>${d}s: ${v}</title></rect>`; if (d % 50 === 0) s += `<text x="${x}" y="68" class="lab s m">${d}</text>`; });
+  return s + `</svg>`;
+}
+function side() {
+  const box = document.getElementById("side"); let h = "";
+  if (S.club != null && P) {
+    const p = P[S.club];
+    h = `<button class="back">Back</button><h4>Football club</h4><div class="big">${esc(p[7] || "(no English label)")}</div><table>
+<tr><td>Founded</td><td>${p[2]}</td></tr>${p[3] ? `<tr><td>Dissolved</td><td>${p[3]}</td></tr>` : ""}<tr><td>Country</td><td><span class="go" data-c="${esc(p[6])}">${esc(CN(p[6]))}</span></td></tr>
+<tr><td>Point from</td><td>${SRCN[p[4]]}</td></tr><tr><td>Sitelinks</td><td>${p[5]}</td></tr></table><p>${wdlink(p[8], "Wikidata " + p[8])}</p>`;
+    const fr = SITE.first[p[6]]; if (fr && fr[2] === p[8]) h += `<p class="sub">The oldest dated club Wikidata records in ${esc(CN(p[6]))}.</p>`;
+  } else if (S.sel) {
+    const iso = S.sel, c = SITE.c[iso], fr = SITE.first[iso], n = cumCountry(iso, S.y);
+    h = `<h4>${esc(SITE.cont[iso] || "Country")}</h4><div class="big">${esc(CN(iso))}</div>`;
+    if (!c) h += `<p class="sub">No clubs with this country in Wikidata.</p>`;
+    else {
+      const tot = Object.values(c.y).reduce((a, b) => a + b, 0);
+      h += `<table><tr><td>Dated clubs by ${S.y}</td><td class="num">${fmt(n)}</td></tr><tr><td>Dated clubs, all years</td><td class="num">${fmt(tot)}</td></tr><tr><td>Clubs with no year</td><td class="num">${fmt(c.u)}</td></tr><tr><td>Recorded as dissolved</td><td class="num">${fmt(c.d)}</td></tr></table>`;
+      if (fr) h += `<h4>First club in the record</h4><p><b>${esc(fr[1])}</b>, ${fr[0]}${fr[3] ? ` <small>(and ${fr[3]} more that year)</small>` : ""} · ${wdlink(fr[2])}</p>`;
+      h += `<h4>Clubs founded per decade</h4>` + decBars(iso);
+      if (c.t && c.t.length) h += `<h4>Oldest dated clubs</h4><ol>` + c.t.map(t => `<li>${esc(t[0])} <small>${t[1]}${t[2] ? " to " + t[2] : ""}</small></li>`).join("") + `</ol>`;
+    }
+    note(`<b>${esc(CN(iso))}</b>: ${fmt(n)} dated club${n === 1 ? "" : "s"} by ${S.y}`);
+  } else {
+    const n = cumAll[S.y], k = nCountries(S.y);
+    h = `<h4>${S.mode === "dec" ? "This decade" : "So far"}</h4><div class="big">${S.y}</div><table><tr><td>Clubs founded by ${S.y}</td><td class="num">${fmt(n)}</td></tr><tr><td>Countries with a club</td><td class="num">${fmt(k)}</td></tr><tr><td>Founded in ${S.y}</td><td class="num">${fmt(SITE.all_y[S.y] || 0)}</td></tr><tr><td>Dissolved by ${S.y}</td><td class="num">${fmt(cumDead[S.y])}</td></tr></table>`;
+    const nf = Object.entries(SITE.first).filter(([, f]) => f[0] === S.y);
+    if (nf.length) h += `<h4>First club this year in</h4><ul>` + nf.map(([iso, f]) => `<li><span class="go" data-c="${iso}">${esc(CN(iso))}</span>: ${esc(f[1])}</li>`).join("") + `</ul>`;
+    else { const last = Object.entries(SITE.first).filter(([, f]) => f[0] < S.y).sort((a, b) => b[1][0] - a[1][0]).slice(0, 4); if (last.length) h += `<h4>Latest countries to join</h4><ul>` + last.map(([iso, f]) => `<li><span class="go" data-c="${iso}">${esc(CN(iso))}</span> <small>${f[0]}, ${esc(f[1])}</small></li>`).join("") + `</ul>`; }
+    h += `<p class="sub">Press play, drag the slider or click the bars above. Click a dot for a club, a country for its story.</p>`;
+    note("");
+  }
+  box.innerHTML = h;
+  const b = box.querySelector(".back"); if (b) b.onclick = () => { S.club = null; dots.draw(); side(); };
+  box.querySelectorAll("[data-c]").forEach(e => e.onclick = () => { S.club = null; pickCountry(e.dataset.c, true); });
+}
+function toMap() { if (small()) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" }); }
+const FIT = { USA: [[24, -125], [50, -66]], FRA: [[41.3, -5.2], [51.2, 9.6]], NOR: [[57.9, 4.5], [71.2, 31]], RUS: [[41, 27], [70, 140]], NLD: [[50.7, 3.3], [53.6, 7.3]], CHN: [[18, 73], [53.6, 135]], CHL: [[-56, -76], [-17.5, -66]], NZL: [[-47.5, 166], [-34, 179]], ESP: [[35.8, -9.5], [43.9, 4.4]], PRT: [[36.9, -9.6], [42.2, -6.1]] };
+function fitIso(iso) { const f = WORLD.features.find(x => x.properties.iso === iso); if (FIT[iso]) return map.fitBounds(FIT[iso]); if (f) return map.fitBounds(L.geoJSON(f).getBounds(), { padding: [10, 10], maxZoom: 7 }); const g = SITE.cpos[iso]; if (g) map.setView([g[1], g[0]], 8); }
+function pickCountry(iso, move) { S.sel = iso; S.club = null; if (move) { fitIso(iso); toMap(); } cLayer.setStyle(cStyle); dots.draw(); side(); }
+function pickClub(i, move) {
+  S.club = i; const p = P[i]; S.sel = p[6] || null;
+  if (p[2] > S.y) setYear(p[2]);
+  if (move) { map.setView([p[1], p[0]], Math.max(map.getZoom(), 8)); toMap(); }
+  L.popup({ maxWidth: 260 }).setLatLng([p[1], p[0]]).setContent(`<b>${esc(p[7] || "(no English label)")}</b><br>Founded ${p[2]}${p[3] ? ", dissolved " + p[3] : ""}<br>${esc(CN(p[6]))} · ${wdlink(p[8])}`).openOn(map);
+  note(`<b>${esc(p[7] || p[8])}</b>, ${p[2]}`); cLayer.setStyle(cStyle); dots.draw(); side();
+}
+(function focusRow() {
+  const row = document.getElementById("focusRow");
+  const F = [["Sheffield", [[53.25, -1.75], [53.5, -1.25]]], ["British Isles", [[49.8, -10.5], [59, 2]]], ["Europe", [[35, -12], [65, 35]]], ["South America", [[-56, -82], [13, -34]]], ["Africa", [[-35, -18], [37, 52]]], ["Asia", [[-10, 40], [55, 145]]], ["North America", [[7, -125], [55, -60]]], ["Oceania", [[-48, 110], [0, 180]]], ["World", null]];
+  F.forEach(([n, b]) => { const x = document.createElement("button"); x.className = "btn"; x.textContent = n; x.onclick = () => { if (!b) { S.sel = null; S.club = null; map.setView([30, 10], small() ? 1 : 2); cLayer.setStyle(cStyle); side(); } else map.fitBounds(b); toMap(); }; row.appendChild(x); });
+})();
+
+/* ---------- search: countries and clubs ---------- */
+(function search() {
+  const inp = document.getElementById("q"), sug = document.getElementById("sug"); let opts = [], k = -1;
+  const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  function build(q) {
+    const nq = norm(q); if (nq.length < 2) return [];
+    const out = [];
+    Object.keys(SITE.cname).forEach(iso => { const n = CN(iso); if (norm(n).includes(nq)) out.push({ t: "c", n, iso, s: norm(n).startsWith(nq) ? 5 : 2 }); });
+    if (P) { let m = 0; for (let i = 0; i < P.length; i++) { const nm = P[i][7]; if (nm && norm(nm).includes(nq)) { out.push({ t: "k", n: nm, i, s: (norm(nm).startsWith(nq) ? 2 : 1) + Math.min(P[i][5], 80) / 40 }); if (++m > 400) break; } } }
+    return out.sort((a, b) => b.s - a.s).slice(0, 12);
+  }
+  const lab = o => o.t === "c" ? `${esc(o.n)} <span>country</span>` : `${esc(o.n)} <span>${P[o.i][2] || "no year"}, ${esc(CN(P[o.i][6]))}</span>`;
+  const show = () => { sug.innerHTML = opts.map((o, i) => `<li role="option" aria-selected="${i === k}" data-i="${i}">${lab(o)}</li>`).join(""); sug.style.display = opts.length ? "block" : "none"; };
+  const choose = o => { sug.style.display = "none"; inp.value = o.n; inp.blur(); if (o.t === "c") pickCountry(o.iso, true); else { if (!P[o.i][2]) { pickCountry(P[o.i][6], true); return; } if (S.mode === "dec") { S.mode = "cum"; document.querySelectorAll("#modeRow .btn").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === "cum")); } pickClub(o.i, true); } };
+  inp.addEventListener("input", () => { opts = build(inp.value); k = -1; show(); });
+  inp.addEventListener("keydown", e => { if (e.key === "ArrowDown") { k = Math.min(opts.length - 1, k + 1); show(); e.preventDefault(); } else if (e.key === "ArrowUp") { k = Math.max(0, k - 1); show(); e.preventDefault(); } else if (e.key === "Enter" && opts.length) { choose(opts[Math.max(0, k)]); } else if (e.key === "Escape") { sug.style.display = "none"; } });
+  sug.addEventListener("click", e => { const li = e.target.closest("li"); if (li) choose(opts[+li.dataset.i]); });
+  document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+})();
+map.on("zoomend moveend", placeNames);
+
+/* ---------- charts ---------- */
+function hbars(box, rows, opts) {
+  resp(box, (w, sm) => {
+    const maxLab = Math.max(...rows.map(r => String(r.lab ?? r.v).length)), lw = sm ? Math.min(150, w * .44) : Math.min(230, w * .42), rh = 26, h = rows.length * rh + 10, x0 = lw, x1 = w - 10 - maxLab * 7.4, max = Math.max(...rows.map(r => r.v)) || 1;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    rows.forEach((r, i) => {
+      const y = 4 + i * rh, bw = Math.max(r.v > 0 ? 2 : 0, (x1 - x0) * r.v / max);
+      if (r.gap) { el("line", { x1: 0, x2: w, y1: y + 1, y2: y + 1, stroke: css("--border"), "stroke-dasharray": "3 3" }, svg); }
+      const cut = sm ? 19 : 30;
+      const t = lbl(svg, x0 - 8, y + 16, r.n.length > cut ? r.n.slice(0, cut - 1) + "." : r.n, "lab", "end");
+      const b = el("rect", { x: x0, y: y + 3, width: bw, height: rh - 9, fill: r.c, rx: 2 }, svg);
+      lbl(svg, x0 + bw + 6, y + 16, r.lab ?? fmt(r.v), "lab b");
+      if (r.tip) [b, t].forEach(e => { e.addEventListener("mousemove", ev => showTip(r.tip, ev.clientX, ev.clientY)); e.addEventListener("mouseleave", hideTip); });
+    });
+  });
+}
+function contLegend() { const h = CONT.map(([k, c]) => `<span><i style="background:${c}"></i>${esc(k)}</span>`).join(""); document.getElementById("contLegend").innerHTML = h; document.getElementById("contLegend2").innerHTML = h + `<span><i style="background:#B5AFA3"></i>No country</span>`; }
+function frontChart() {
+  const F = R.first.list;
+  resp(document.getElementById("frontChart"), (w, sm) => {
+    const h = sm ? 300 : 380, m = { l: 52, r: 12, t: 10, b: 30 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Scatter of each country's first club year against distance from Sheffield" }, document.getElementById("frontChart"));
+    const X = y => m.l + (y - 1855) / (2026 - 1855) * (w - m.l - m.r), Y = k => h - m.b - k / 20000 * (h - m.t - m.b);
+    for (let y = 1860; y <= 2020; y += 20) { el("line", { x1: X(y), x2: X(y), y1: m.t, y2: h - m.b, stroke: css("--rule") }, svg); lbl(svg, X(y), h - 10, y, "lab s m", "middle"); }
+    for (let k = 0; k <= 20000; k += 5000) { el("line", { x1: m.l, x2: w - m.r, y1: Y(k), y2: Y(k), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, Y(k) + 4, fmt(k), "lab s m", "end"); }
+    lbl(svg, m.l, m.t + 4, "km from Sheffield", "lab s m");
+    F.forEach(f => { const c = el("circle", { cx: X(f.y), cy: Y(f.km), r: sm ? 3.6 : 4.4, fill: CC[f.cont] || "#999", "fill-opacity": .85, stroke: css("--card"), "stroke-width": .8 }, svg);
+      c.style.cursor = "pointer";
+      c.addEventListener("mousemove", ev => showTip(`<b>${esc(f.name)}</b> ${f.y}<br>${esc(f.club)}<br>${fmt(f.km)} km from Sheffield`, ev.clientX, ev.clientY)); c.addEventListener("mouseleave", hideTip);
+      c.addEventListener("click", () => { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setYear(f.y); pickCountry(f.iso, true); }); });
+    const lab = { ENG: "Sheffield FC", PER: "Lima", AUS: "Sydney", NZL: "New Zealand", ARG: "Argentina", GIB: "Gibraltar", USA: "US", JPN: "Japan", NGA: "Nigeria", MNG: "Mongolia" };
+    F.filter(f => lab[f.iso] && !(sm && ["USA", "NGA", "JPN"].includes(f.iso))).forEach(f => { const right = X(f.y) > w - 110; lbl(svg, X(f.y) + (right ? -7 : 7), Y(f.km) - 6, lab[f.iso], "lab s", right ? "end" : "start"); });
+  });
+}
+function firstsTable() {
+  const row = document.getElementById("contRow"); let cur = "All";
+  ["All"].concat(CONT.map(c => c[0])).forEach(k => { const b = document.createElement("button"); b.className = "btn"; b.textContent = k; b.setAttribute("aria-pressed", k === "All"); b.onclick = () => { cur = k; row.querySelectorAll(".btn").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); }; row.appendChild(b); });
+  function draw() {
+    const t = document.getElementById("firsts");
+    t.innerHTML = `<thead><tr><th>Year</th><th>Country</th><th>Oldest club in Wikidata</th></tr></thead><tbody>` + R.first.list.filter(f => cur === "All" || f.cont === cur).map(f => `<tr data-iso="${f.iso}" data-y="${f.y}"><td class="y">${f.y}</td><td><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:${CC[f.cont] || "#999"}"></span>${esc(f.name)}</td><td>${esc(f.club)}${f.ties ? ` <small style="color:var(--muted)">+${f.ties} same year</small>` : ""}</td></tr>`).join("") + `</tbody>`;
+    t.querySelectorAll("tr[data-iso]").forEach(r => r.onclick = () => { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); if (S.playing) play(false); setYear(+r.dataset.y); setTimeout(() => pickCountry(r.dataset.iso, true), 300); });
+  }
+  draw();
+}
+function waveChart() {
+  const D = R.decades.filter(d => d.dec >= 1850);
+  resp(document.getElementById("waveChart"), (w, sm) => {
+    const h = sm ? 280 : 340, m = { l: 46, r: 8, t: 10, b: 28 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Stacked bars of clubs founded per decade by continent" }, document.getElementById("waveChart"));
+    const mx = Math.max(...D.map(d => d.n)), bw = (w - m.l - m.r) / D.length, Y = v => (h - m.t - m.b) * v / mx;
+    for (let v = 0; v <= mx; v += 1000) { const y = h - m.b - Y(v); el("line", { x1: m.l, x2: w - m.r, y1: y, y2: y, stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y + 4, fmt(v), "lab s m", "end"); }
+    D.forEach((d, i) => {
+      let y = h - m.b; const x = m.l + i * bw + 1.5;
+      CONT.concat([["Unknown", "#B5AFA3"]]).forEach(([k, c]) => { const v = d[k] || 0; if (!v) return; const hh = Y(v); y -= hh; const r = el("rect", { x, y, width: bw - 3, height: hh, fill: c }, svg);
+        r.addEventListener("mousemove", ev => showTip(`<b>${d.dec}s</b>: ${fmt(d.n)} clubs<br>${CONT.map(([kk]) => `${esc(kk)} ${fmt(d[kk])}`).join("<br>")}${d.Unknown ? `<br>no country ${fmt(d.Unknown)}` : ""}`, ev.clientX, ev.clientY)); r.addEventListener("mouseleave", hideTip); });
+      if (d.dec % (sm ? 40 : 20) === 0 || (!sm && d.dec === 2020)) lbl(svg, x + bw / 2, h - 10, d.dec + "s", "lab s m", "middle");
+    });
+  });
+}
+function disChart() {
+  const D = R.dis.by_dec.filter(d => d.dec >= 1860);
+  hbars(document.getElementById("disChart"), D.map(d => ({ n: d.dec + "s", v: d.n, c: d.dec === 1940 ? css("--hot") || "#9E1B32" : "#7C7A72" })), { aria: "Bar chart of clubs dissolved per decade" });
+}
+function covChart() {
+  const top = R.coverage.top, bot = R.coverage.bottom;
+  const rows = top.map(r => ({ n: r.name, v: r.per_m, c: "#2E6B3A", lab: r.per_m.toFixed(0) })).concat(bot.map((r, i) => ({ n: r.name, v: r.per_m, c: "#D99A1E", lab: r.per_m.toFixed(1), gap: i === 0 })));
+  hbars(document.getElementById("covChart"), rows, { aria: "Clubs in Wikidata per million people" });
+}
+function ukCards() {
+  const box = document.getElementById("ukCards");
+  [["ENG", "#9E1B32"], ["SCT", "#2D5E9E"], ["WLS", "#2E6B3A"], ["NIR", "#D99A1E"]].forEach(([iso, c]) => {
+    const u = R.uk[iso], d = document.createElement("div"); d.className = "card"; d.style.setProperty("--c", c);
+    d.innerHTML = `<b>${esc(CN(iso))}</b><div class="big">${u.first.y}</div>${esc(u.first.club)}<br><span style="color:var(--muted)">${fmt(u.n)} clubs in Wikidata</span><br><button class="btn" style="margin-top:8px">Show</button>`;
+    d.querySelector("button").onclick = () => { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); if (S.playing) play(false); setYear(u.first.y + 10); setTimeout(() => pickCountry(iso, true), 300); };
+    box.appendChild(d);
+  });
+}
+function charts() { contLegend(); frontChart(); firstsTable(); waveChart(); disChart(); covChart(); ukCards(); spark(); }
+
+/* ---------- start ---------- */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); legend(); redraws.forEach(f => f()); };
+charts(); setTiles(); legend(); setYear(START); placeNames();
+</script>
+/*FULLSCREEN*/
+</body>
+</html>

@@ -1,0 +1,151 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\newfontfamily\headfont{Inter}[UprightFont=*-ExtraBold,BoldFont=*-ExtraBold,Extension=.otf,Path=/usr/share/fonts/opentype/inter/]
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,float,caption,array,xcolor,longtable}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\setstretch{1.05}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\titleformat{\section}{\headfont\Large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\headfont\large}{\thesubsection}{0.8em}{}
+\captionsetup{font=small,labelfont=bf}
+\urlstyle{same}
+\hypersetup{pdftitle={Where Football Clubs Come From},pdfauthor={Tristan Hotham}}
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Where Football Clubs Come From\par}
+\vspace{0.4em}
+{\large Founding years of {{source.n|int}} association football clubs in Wikidata,\\from Sheffield FC in 1857 to today\par}
+\vspace{1.2em}
+{\large Tristan Hotham\par}
+\vspace{0.3em}
+{\small Independent researcher\\
+ORCID: 0000-0003-4931-9349\\
+DOI: \href{https://doi.org/{{meta.doi}}}{https://doi.org/{{meta.doi}}}\par}
+\vspace{0.8em}
+2026
+\end{center}
+
+\begin{quote}
+\small
+\begin{center}\textbf{Abstract}\end{center}
+Association football spread from a handful of clubs in northern England in the 1850s and 1860s to almost every country on earth. I use Wikidata, the open knowledge base behind Wikipedia, to map that spread from the bottom up: every item that is an association football club, with its founding year, its dissolution year and a location. After removing national teams, reserve and youth sides, beach soccer and futsal teams and probable Australian rules clubs, {{source.n|int}} clubs remain, {{source.n_dated|int}} ({{source.dated_pct|pc}}) with a founding year and {{source.n_point|int}} ({{source.point_pct|pc}}) with a point. The oldest dated club Wikidata records in each of {{first.n|int}} countries and territories traces a diffusion front: {{first.by_1900|int}} had a club before 1900 and {{first.by_1950|int}} before 1950, and first clubs founded before 1900 lie a median {{first.median_km_pre1900|int}} km from Sheffield against {{first.median_km_post1950|int}} km for those founded after 1950. Before 1900, {{waves.share_by_period.1857-1899.Europe|pc}} of new clubs were European and {{waves.pre1900_uk_pct|pc}} were in the United Kingdom; the busiest year is {{waves.peak_year|raw}} ({{waves.peak_year_n|int}} clubs), Europe's busiest decade the 1920s, and every other continent's the 2000s. Wikidata records {{dis.n|int}} dissolutions, peaking in {{dis.peak_year|raw}} ({{dis.y1945|int}} clubs, {{dis.y1945_german|int}} of them German). Coverage is very uneven: the Netherlands has {{coverage.nld_per_m|int}} clubs per million people in Wikidata and Nigeria {{coverage.nga_per_m|f1}}. The atlas maps what the open record says about where clubs come from, and is explicit about what it cannot say, including who founded them.
+
+\textbf{Keywords:} football; soccer; association football clubs; diffusion; sport history; Wikidata; open data; mapping
+\end{quote}
+
+\section{Introduction}
+Sheffield FC, founded in 1857, is usually called the oldest football club in the world, and the game that the Football Association codified in London in 1863 spread with remarkable speed. Historians have told that story through rules, associations and individual pioneers: public school and working-class football in England \citep{harvey}, and the global spread carried by trade, empire, migration and education \citep{goldblatt,giulianotti}. What is harder to see is the aggregate pattern, the thousands of clubs founded decade after decade, country after country.
+
+Wikidata \citep{wikidata} offers a way to look at that pattern from the bottom up. It is an open, structured database of named things, including tens of thousands of football clubs, many with a founding date, a location or a home ground, and some with a dissolution date. It is also uneven, catalogued by volunteers with very different interests in different countries. This paper uses it to ask three simple questions: when did each country get its first (recorded) club, how did club founding rise and fall by decade and continent, and which clubs did not survive? It pairs the analysis with an interactive, animated atlas (\url{{{meta.page}}}).
+
+The contribution is descriptive and deliberately modest. Wikidata is not a census of clubs, and a founding year in Wikidata is not proof of when football was first played anywhere. I am explicit throughout about coverage, and about one question the data cannot answer: who founded these clubs. Wikidata does not record the nationality of founders, so nothing here measures the part played by British workers, sailors, engineers or students abroad, however prominent it is in the literature.
+
+\section{Data}
+\textbf{Wikidata.} A single query through the QLever SPARQL endpoint \citep{qlever}, retrieved in {{meta.retrieved}}, returned every item that is an instance of association football club (Q476028) or of one of its subclasses, with its English label, inception (P571), dissolution (P576), coordinates (P625), the coordinates of its home venue (P115), country (P17), number of sitelinks and class. Because each combination of these values is a row, the result has {{source.n_rows|int}} rows for {{source.n_items|int}} items. Wikidata is published under CC0.
+
+\textbf{Geography.} Natural Earth \citep{naturalearth} countries (1:50m for display, 1:10m for point in polygon), states and provinces (to split the United Kingdom into England, Scotland, Wales and Northern Ireland, each of which has its own football association), populated places (for clubs whose name contains a town) and population estimates. All are public domain.
+
+\textbf{Check.} The engsoccerdata club table \citep{engsoccer} gives coordinates for {{source.eng_check.n|int}} English clubs that match Wikidata labels; {{source.eng_check.within10|int}} of them lie within 10 km of the Wikidata point. The two sources are probably not independent (both draw on Wikipedia), so this checks transcription rather than truth.
+
+{{TABLE_PIPELINE}}
+
+\section{Methods}
+\subsection{Which items are clubs}
+I kept one record per item and pooled values across rows. I left out {{source.n_dropped|int}} items that are not clubs in the usual sense: {{source.dropped.national team|int}} national and representative teams (by class or by names such as `national football team'), {{source.dropped.beach or futsal|int}} beach soccer and futsal sides, {{source.dropped.reserve or youth team|int}} reserve, B, II and under-age teams (which repeat the founding year of their parent club), and {{source.dropped.probable Australian rules club|int}} Australian clubs whose names (a spelt-out `Football Club', `Football Netball Club' or `Australian Football Club' with no soccer word) mark them as Australian rules football clubs, a class Wikidata often confuses with association football. These filters are name based and imperfect in both directions.
+
+\subsection{Dates}
+The founding year is the earliest inception year of an item; {{source.yonly_pct|pc}} of founding dates are stored as 1 January, which in Wikidata usually means that only the year is known, so I work in years throughout. {{source.n_early|int}} clubs have a founding year before 1857. On inspection these are cricket, rowing, gymnastics and multi-sport societies older than the football they later took up, plus a few errors (a Spanish club dated 1492, an Ecuadorian club dated a century early); they are kept in the data with a flag but left out of the timeline and the first-club analysis. One founding year in the future ({{source.n_future|int}} club) was removed. The dissolution year is the latest P576 year; {{dis.n_bad|int}} clubs with a dissolution before their founding are flagged and left out of the dissolution counts.
+
+\subsection{Places and countries}
+A club's point is its own coordinates ({{source.n_own|int}} clubs), else its home venue's ({{source.n_venue|int}}), else, if its English label contains the name of a Natural Earth populated place in the same country (excluding common words such as Union, Victoria or Santa), that place ({{source.n_town|int}}). The last is approximate and is flagged. A club's country is the present-day country (or UK nation) that its point falls in, else the country Wikidata gives, matched to Natural Earth by Wikidata identifier. Where both are known they agree for {{source.agree_pct|pc}} of {{source.n_agree_checked|int}} clubs. {{source.n_former|int}} clubs whose only country is a former state (the Soviet Union, the German Reich, Czechoslovakia, Austria-Hungary, Yugoslavia) and that have no point are kept in the totals but given no present-day country, and {{source.n_uk_unknown|int}} UK clubs with no point stay as `United Kingdom'. Continents follow Natural Earth, with small island states assigned to their nearest continent.
+
+\subsection{First clubs and the diffusion front}
+For each country I take the oldest club with a founding year from 1857 (ties broken by sitelinks), and measure the great-circle distance from Sheffield to its point (or to the country's label point if it has none). I use this as a simple, transparent diffusion front, not as a model of diffusion: it tells us when a club that still has a Wikidata entry was founded, which may be long after football was first played, and in multi-sport societies may be long before.
+
+\section{Results}
+\subsection{The spread}
+Figure~\ref{fig:snap} shows every dated club with a point at six moments. In 1870, {{waves.uk_pct_1870|pc}} of the {{waves.n_1870|int}} clubs in the record are in the United Kingdom, with outliers in a handful of other countries, several of them older sports societies; by 1890 they cover the British Isles densely and are scattered through the ports and cities of western Europe, the River Plate, India, southern Africa and Australia; by 1930 they cover Europe and much of South America; after 1960 they reach almost everywhere. By {{meta.end}} the record holds {{first.n|int}} countries and territories with a dated club.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_snapshots.png}
+\caption{Clubs with a founding year and a point, by year founded, at six moments. Countries are shaded once they have a dated club.}\label{fig:snap}\end{figure}
+
+\subsection{First clubs}
+Figure~\ref{fig:first} maps the year of each country's oldest dated club, and Figure~\ref{fig:front} plots it against distance from Sheffield. The pattern is a front that moves outwards but leaps by sea. Countries whose first club came before 1900 sit a median {{first.median_km_pre1900|int}} km from Sheffield, those after 1950 a median {{first.median_km_post1950|int}} km, and the correlation between year and distance is a modest {{first.corr_year_km|f2}}. Peru (the Lima Cricket and Football Club, {{first.first_by_cont.South America.y|raw}}), Argentina, Uruguay, India and Australia all have clubs in the record before Hungary, Poland or Russia. Table~\ref{tab:cont} summarises by continent and Table~\ref{tab:first} lists the earliest first clubs.
+
+Many first clubs are multi-sport societies. Switzerland's is the Lausanne Football and Cricket Club (1860), Uruguay's the Montevideo Rowing Club (1874), Norway's a gymnastics society in Drammen (1857), Italy's the Bentegodi gymnastics society in Verona (1868). Wikidata records the founding of the whole club, so these dates say when a club that now has a football side was founded. Others are surprising and may be wrong: France's oldest dated club, a club in Cergy-Pontoise, is given 1865.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_first_map.png}
+\caption{Year of the oldest dated club in Wikidata, by country.}\label{fig:first}\end{figure}
+
+\begin{figure}[tbp]\centering\includegraphics[width=.95\textwidth]{f_front.png}
+\caption{The diffusion front: year of each country's oldest dated club against the distance of that club from Sheffield.}\label{fig:front}\end{figure}
+
+{{TABLE_CONT}}
+
+{{TABLE_FIRST}}
+
+\subsection{The British Isles}
+Of the {{uk.pre1880_all|int}} clubs dated before 1880, {{uk.pre1880|int}} are in the United Kingdom (Figure~\ref{fig:uk}). The first club in each nation is Sheffield FC in England ({{uk.ENG.first.y|raw}}), Wrexham in Wales ({{uk.WLS.first.y|raw}}), Queen's Park in Scotland ({{uk.SCT.first.y|raw}}) and Cliftonville in Northern Ireland ({{uk.NIR.first.y|raw}}). England's early list includes Hallam (1860), Notts County (1862), Stoke (1863), Nottingham Forest (1865) and Sheffield Wednesday (1867), and London clubs of the early FA Cup, such as the Wanderers, that no longer exist.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.72\textwidth]{f_british_isles.png}
+\caption{Clubs in the British Isles founded by 1890, by year founded. Ringed: later dissolved.}\label{fig:uk}\end{figure}
+
+\subsection{Founding waves}
+Figure~\ref{fig:waves} shows clubs founded per decade by continent. Europe dominates the early record ({{waves.share_by_period.1857-1899.Europe|pc}} of clubs founded before 1900 and {{waves.share_by_period.1900-1949.Europe|pc}} from 1900 to 1949) and peaks in the 1920s; the single busiest year is {{waves.peak_year|raw}} ({{waves.peak_year_n|int}} clubs), as the First World War ended. Every other continent peaks in the 2000s, and since 2000 Europe's share of new clubs falls to {{waves.share_by_period.2000-2026.Europe|pc}}, with Asia at {{waves.share_by_period.2000-2026.Asia|pc}} and North America at {{waves.share_by_period.2000-2026.North America|pc}}. Clubs founded since 1990 make up {{waves.post1990_pct|pc}} of dated clubs. Part of the recent rise is real (new professional leagues, independent states, women's football) and part reflects recording: recent clubs are more likely to have a founding date and an entry at all.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_waves.png}
+\caption{Clubs founded per decade, by continent ({{source.n_ok|int}} clubs with a founding year from 1857). The 2020s run to 2026.}\label{fig:waves}\end{figure}
+
+\subsection{Clubs that died}
+Wikidata records a dissolution for {{dis.n|int}} clubs ({{dis.pct|pc}}), shown by decade in Figure~\ref{fig:dis}. The single worst year is {{dis.peak_year|raw}}: {{dis.y1945|int}} clubs, {{dis.y1945_german|int}} of them in Germany or with the German Reich as their country, when the Allied Control Council dissolved German sports organisations and clubs in the lost eastern territories ceased to exist. Since 2000 there have been {{dis.since2000|int}} recorded dissolutions ({{dis.since2000_pct|pc}} of the total), a mixture of real closures, mergers and refoundings and of easier recording. Among clubs with both dates the median lifespan is {{dis.median_life|int}} years, and {{dis.short5|int}} lasted five years or fewer. The oldest club recorded as dissolved is the Wanderers ({{dis.oldest_dead.0.y|raw}} to {{dis.oldest_dead.0.d|raw}}).
+
+\begin{figure}[tbp]\centering\includegraphics[width=.95\textwidth]{f_dissolved.png}
+\caption{Clubs dissolved per decade (P576).}\label{fig:dis}\end{figure}
+
+\subsection{Coverage}
+Europe holds {{coverage.europe_pct|pc}} of clubs with a country, Asia {{coverage.by_cont.4.pct|pc}} and Africa {{coverage.africa_pct|pc}} (Table~\ref{tab:cov}). Per head of population, Wikidata has {{coverage.nld_per_m|int}} clubs per million people in the Netherlands and {{coverage.nga_per_m|f1}} in Nigeria (Figure~\ref{fig:cov}); the most catalogued countries per head are small European ones where editors have entered amateur and village clubs systematically. Clubs are thinly described: half have {{coverage.median_sl|int}} or fewer sitelinks and {{coverage.sl1_pct|pc}} at most one, and {{source.n_nolabel|int}} have no English label.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.86\textwidth]{f_coverage.png}
+\caption{Clubs in Wikidata per million people: the ten highest, and the ten lowest among countries of more than 20 million people.}\label{fig:cov}\end{figure}
+
+{{TABLE_COV}}
+
+\section{Discussion}
+The open record reproduces the broad history of football's spread that historians describe: a dense English and Scottish core in the 1860s and 1870s, early outposts along trade and imperial routes, a European boom after the First World War, and a long second wave across Africa, Asia and the Americas in the second half of the twentieth century. The diffusion front is clearly shaped by sea routes rather than distance, which fits accounts of football carried by merchants, sailors, engineers and teachers \citep{goldblatt}, though the data themselves say nothing about who those people were.
+
+The stronger lesson is about the record. The Netherlands has more clubs in Wikidata than Germany, Cyprus more per head than anywhere, and India and China fewer per head than almost anywhere. Those are facts about Wikidata's editors, not about football. First-club years are more robust than counts, since they need only one well-documented old club, but even they depend on someone having entered that club with a date, and some first dates belong to older multi-sport societies.
+
+\section{Limitations}
+First, Wikidata is incomplete and uneven, and the totals count catalogued clubs, not clubs. Second, the definition of a club depends on Wikidata's classes, which mix clubs, teams and sections; my filters are name based and will both miss and wrongly remove some items. Third, a founding year may be that of a parent society, a refounding or a mistake, and dissolution dates are sparse and recent-heavy. Fourth, {{source.n_town|int}} points come from a town in the club's name and are approximate; others come from a club's current ground, which may have moved. Fifth, countries are present-day countries, so a club founded in the Austro-Hungarian empire is counted in today's Czech Republic or Ukraine. Sixth, nothing here identifies founders or their nationality. Finally, all counts are for one retrieval in {{meta.retrieved}}.
+
+\section{Conclusion}
+A single open query can trace football's spread from Sheffield to {{first.n|int}} countries and territories, show the waves of club founding by decade and continent, and record the clubs that died. It cannot say who founded them, and its gaps are themselves a finding. The atlas maps what is known, shows clearly where little is known, and lets readers explore both.
+
+\section*{Data and code availability}
+The interactive atlas is at \url{{{meta.page}}}. Data and code are at \url{{{meta.repo}}} and archived with this paper at \url{https://doi.org/{{meta.doi}}}. Derived data are released under CC BY 4.0 and code under the MIT licence.
+
+\section*{AI statement}
+I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.
+
+\begin{thebibliography}{9}
+\bibitem[Bast and Buchhold(2017)]{qlever} Bast, H. and Buchhold, B. (2017) QLever: a query engine for efficient SPARQL+text search. \emph{Proceedings of the 2017 ACM Conference on Information and Knowledge Management}, 647 to 656. \url{https://qlever.cs.uni-freiburg.de/}
+\bibitem[Curley(2016)]{engsoccer} Curley, J. P. (2016) engsoccerdata: English and European soccer results. R package, GPL-3. \url{https://github.com/jalapic/engsoccerdata}
+\bibitem[Giulianotti and Robertson(2004)]{giulianotti} Giulianotti, R. and Robertson, R. (2004) The globalization of football: a study in the glocalization of the `serious life'. \emph{British Journal of Sociology}, 55(4), 545 to 568.
+\bibitem[Goldblatt(2006)]{goldblatt} Goldblatt, D. (2006) \emph{The Ball is Round: A Global History of Football}. London: Viking.
+\bibitem[Harvey(2005)]{harvey} Harvey, A. (2005) \emph{Football: The First Hundred Years. The Untold Story}. London: Routledge.
+\bibitem[Natural Earth(2026)]{naturalearth} Natural Earth (2026) Admin 0 countries, admin 1 states and provinces, and populated places. Public domain. \url{https://www.naturalearthdata.com/}
+\bibitem[Vrandečić and Krötzsch(2014)]{wikidata} Vrandečić, D. and Krötzsch, M. (2014) Wikidata: a free collaborative knowledgebase. \emph{Communications of the ACM}, 57(10), 78 to 85.
+\end{thebibliography}
+\end{document}
