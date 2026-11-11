@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this data or code, please cite it as below."
+title: "Where Football Clubs Come From: Founding Years of Association Football Clubs in Wikidata, from Sheffield FC in 1857 to Today"
+type: dataset
+authors:
+  - family-names: Hotham
+    given-names: Tristan
+    orcid: "https://orcid.org/0000-0003-4931-9349"
+    affiliation: "Independent researcher"
+doi: "10.5281/zenodo.23844505"
+url: "https://maps.tristanhotham.com/football-origins/"
+repository-code: "https://github.com/Tristan-Hotham/football-origins"
+license: CC-BY-4.0
+keywords:
+  - "football"
+  - "soccer"
+  - "association football clubs"
+  - "sport history"
+  - "diffusion"
+  - "Wikidata"
+  - "open data"
+  - "maps"
